@@ -1,0 +1,35 @@
+#include<stdio.h>
+#include<unistd.h>
+#include<sys/wait.h>
+int main()
+{
+   pid_t pid1,pid2;
+   pid1=fork();
+   if(pid1<0)
+   {
+      perror("No process");
+   }
+   else if(pid1==0)
+   {
+      printf("process 2 pid=%d,parent ppid=%d\n",getpid() ,getppid());
+      pid2=fork();
+      if(pid2<0)
+      {
+         perror("No Process");
+      }
+      else if(pid2==0)
+      {
+          printf("process 3 pid=%d,parent ppid=%d\n",getpid() ,getppid());
+      }
+      else
+      {
+         wait(NULL);
+      }
+
+   }
+   else
+   {
+       wait(NULL);
+       printf("process 1 pid=%d\n",getpid());
+   }
+}
