@@ -1,0 +1,96 @@
+#include <stdio.h>
+#include "head.h"
+int main()
+{
+    int n;
+    int i;
+    int choice;
+    int tq;
+    Process p[10];
+    Process temp[10];
+    float avgWT = 0;
+    float avgTAT = 0;
+    printf("\nCPU SCHEDULING ALGORITHMS");
+    printf("\n1. FCFS");
+    printf("\n2. SJF - Non-Preemptive");
+    printf("\n3. SRTF - Preemptive");
+    printf("\n4. Priority - Non-Preemptive");
+    printf("\n5. Priority - Preemptive");
+    printf("\n6. Round Robin");
+    printf("\nEnter your choice: ");
+    scanf("%d", &choice);
+    if(choice < 1 || choice > 6)
+    {
+        printf("Invalid choice.\n");
+        return 1;
+    }
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+    if(n <= 0 || n > 10)
+    {
+        printf("Invalid number of processes.\n");
+        return 1;
+    }
+    for(i = 0; i < n; i++)
+    {
+        p[i].id = i + 1;
+        if(choice == 4 || choice == 5)
+        {
+            printf("\nEnter Arrival Time, Burst Time and Priority of Process %d: ",p[i].id);
+            scanf("%f%f%d",&p[i].at,&p[i].bt,&p[i].priority);
+        }
+        else
+        {
+            printf("\nEnter Arrival Time and Burst Time of Process %d: ",p[i].id);
+            scanf("%f%f",&p[i].at,&p[i].bt);
+            p[i].priority = 0;
+        }
+        if(p[i].at < 0 || p[i].bt <= 0)
+        {
+            printf("Invalid Arrival Time or Burst Time.\n");
+            return 1;
+        }
+        temp[i] = p[i];
+    }
+    switch(choice)
+    {
+        case 1:
+            printf("\nFCFS\n");
+            calculateFCFS(temp, n, &avgWT, &avgTAT);
+            break;
+        case 2:
+            printf("\nSJF - Non-Preemptive\n");
+            calculateSJF(
+                temp, n, &avgWT, &avgTAT);
+            break;
+        case 3:
+            printf("\nSRTF - Preemptive\n");
+            calculateSRTF(
+                temp, n, &avgWT, &avgTAT);
+            break;
+        case 4:
+            printf("\nPriority - Non-Preemptive\n");
+            calculatePriorityNonPreemptive(
+                temp, n, &avgWT, &avgTAT);
+            break;
+        case 5:
+            printf("\nPriority - Preemptive\n");
+            calculatePriorityPreemptive(
+                temp, n, &avgWT, &avgTAT);
+            break;
+        case 6:
+            printf("\nEnter Time Quantum: ");
+            scanf("%d", &tq);
+            if(tq <= 0)
+            {
+                printf("Invalid Time Quantum.\n");
+                return 1;
+            }
+            printf("\nRound Robin\n");
+            calculateRoundRobin(
+                temp, n, tq, &avgWT, &avgTAT);
+            break;
+    }
+    printResults(temp, n, avgWT, avgTAT);
+    return 0;
+}
