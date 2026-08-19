@@ -1,0 +1,56 @@
+#include<stdio.h>
+#include<unistd.h>
+#include<sys/wait.h>
+
+int main()
+{
+   int n,i=0, sum = 0, odd = 0, even = 0;
+   printf("Enter n: ");
+   if (scanf("%d", &n) != 1) return 1;
+   pid_t pid1, pid2;
+   pid1 = fork();
+   if (pid1 == 0)
+   {
+      printf("Process 2 pid=%d parent ppid=%d\n", getpid(), getppid());
+      for ( i = 0; i <= n; i++)
+      {
+         if(i%2!=0)
+            odd += i;
+      }
+      printf("Sum of odd numbers between 0 to %d is %d\n", n, odd);
+   }
+   else if (pid1 > 0)
+   {
+      wait(NULL);
+      pid2 = fork();
+      if (pid2 == 0)
+      {
+         printf("Process 3 pid=%d parent ppid=%d\n", getpid(), getppid());
+         for (i = 0; i <= n; i++)
+         {
+            if(i%2==0)
+               even += i;
+         }
+         printf("Sum of even numbers between 0 to %d is %d\n", n, even);
+      }
+      else if (pid2 > 0)
+      {
+         wait(NULL);
+         printf("Process 1 pid=%d\n", getpid());
+         for (i = 0; i <= n; i++)
+         {
+            sum += i;
+         }
+         printf("Sum of numbers from 0 to %d is %d\n", n, sum);
+      }
+      else
+      {
+         perror("Fork for Process 3 failed");
+      }
+   }
+   else
+   {
+      perror("Fork for Process 2 failed");
+   }
+   return 0;
+}
