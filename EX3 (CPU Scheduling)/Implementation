@@ -1,0 +1,281 @@
+#include <stdio.h>
+#include "head.h"
+void calculateFCFS(Process p[], int n, float *avgWT, float *avgTAT)
+{
+    int i;
+    *avgWT = 0;
+    *avgTAT = 0;
+    p[0].ct = p[0].at + p[0].bt;
+    for(i = 1; i < n; i++)
+    {
+        if(p[i - 1].ct < p[i].at)
+        {
+            p[i].ct = p[i].at + p[i].bt;
+        }
+        else
+        {
+            p[i].ct = p[i - 1].ct + p[i].bt;
+        }
+    }
+    for(i = 0; i < n; i++)
+    {
+        p[i].tat = p[i].ct - p[i].at;
+        p[i].wt = p[i].tat - p[i].bt;
+        *avgTAT += p[i].tat;
+        *avgWT += p[i].wt;
+    }
+    *avgTAT /= n;
+    *avgWT /= n;
+}
+
+void calculateSJF(Process p[], int n, float *avgWT, float *avgTAT)
+{
+    int i, count = 0, index;
+    float time = 0, minBT;
+    *avgWT = 0;
+    *avgTAT = 0;
+    for(i = 0; i < n; i++)
+    {
+        p[i].completed = 0;
+    }
+    while(count < n)
+    {
+        minBT = 99999;
+        index = -1;
+        for(i = 0; i < n; i++)
+        {
+            if(p[i].at <= time && p[i].completed == 0)
+            {
+                if(p[i].bt < minBT)
+                {
+                    minBT = p[i].bt;
+                    index = i;
+                }
+            }
+        }
+        if(index == -1)
+        {
+            time++;
+        }
+        else
+        {
+            time += p[index].bt;
+            p[index].ct = time;
+            p[index].tat = p[index].ct - p[index].at;
+            p[index].wt = p[index].tat - p[index].bt;
+            *avgTAT += p[index].tat;
+            *avgWT += p[index].wt;
+            p[index].completed = 1;
+            count++;
+        }
+    }
+    *avgTAT /= n;
+    *avgWT /= n;
+}
+void calculateSRTF(Process p[], int n, float *avgWT, float *avgTAT)
+{
+    int i, completed = 0, index;
+    float time = 0, minRT;
+    *avgWT = 0;
+    *avgTAT = 0;
+    for(i = 0; i < n; i++)
+    {
+        p[i].rt = p[i].bt;
+    }
+    while(completed < n)
+    {
+        minRT = 99999;
+        index = -1;
+        for(i = 0; i < n; i++)
+        {
+            if(p[i].at <= time && p[i].rt > 0)
+            {
+                if(p[i].rt < minRT)
+                {
+                    minRT = p[i].rt;
+                    index = i;
+                }
+            }
+        }
+        if(index == -1)
+        {
+            time++;
+        }
+        else
+        {
+            p[index].rt--;
+            time++;
+            if(p[index].rt == 0)
+            {
+                p[index].ct = time;
+                p[index].tat = p[index].ct - p[index].at;
+                p[index].wt = p[index].tat - p[index].bt;
+                if(p[index].wt < 0)
+                {
+                    p[index].wt = 0;
+                }
+                *avgTAT += p[index].tat;
+                *avgWT += p[index].wt;
+                completed++;
+            }
+        }
+    }
+    *avgTAT /= n;
+    *avgWT /= n;
+}
+void calculatePriorityNonPreemptive(Process p[], int n, float *avgWT, float *avgTAT)
+{
+    int i;
+    int count = 0;
+    int index;
+    int minPriority;
+    float time = 0;
+    *avgWT = 0;
+    *avgTAT = 0;
+    for(i = 0; i < n; i++)
+    {
+        p[i].completed = 0;
+    }
+    while(count < n)
+    {
+        minPriority = 9999;
+        index = -1;
+        for(i = 0; i < n; i++)
+        {
+            if(p[i].at <= time && p[i].completed == 0)
+            {
+                if(p[i].priority < minPriority)
+                {
+                    minPriority = p[i].priority;
+                    index = i;
+                }
+            }
+        }
+        if(index == -1)
+        {
+            time++;
+        }
+        else
+        {
+            time = time + p[index].bt;
+            p[index].ct = time;
+            p[index].tat = p[index].ct - p[index].at;
+            p[index].wt = p[index].tat - p[index].bt;
+            *avgTAT += p[index].tat;
+            *avgWT += p[index].wt;
+            p[index].completed = 1;
+            count++;
+        }
+    }
+    *avgTAT = *avgTAT / n;
+    *avgWT = *avgWT / n;
+}
+void calculatePriorityPreemptive(Process p[], int n, float *avgWT, float *avgTAT)
+{
+    int i;
+    int completed = 0;
+    int index;
+    int minPriority;
+    float time = 0;
+    *avgWT = 0;
+    *avgTAT = 0;
+    for(i = 0; i < n; i++)
+    {
+        p[i].rt = p[i].bt;
+    }
+    while(completed < n)
+    {
+        minPriority = 9999;
+        index = -1;
+        for(i = 0; i < n; i++)
+        {
+            if(p[i].at <= time && p[i].rt > 0)
+            {
+                if(p[i].priority < minPriority)
+                {
+                    minPriority = p[i].priority;
+                    index = i;
+                }
+            }
+        }
+        if(index == -1)
+        {
+            time++;
+        }
+        else
+        {
+            p[index].rt--;
+            time++;
+            if(p[index].rt == 0)
+            {
+                p[index].ct = time;
+                p[index].tat = p[index].ct - p[index].at;
+                p[index].wt = p[index].tat - p[index].bt;
+                *avgTAT += p[index].tat;
+                *avgWT += p[index].wt;
+                completed++;
+            }
+        }
+    }
+    *avgTAT = *avgTAT / n;
+    *avgWT = *avgWT / n;
+}
+void calculateRoundRobin(Process p[], int n, int tq, float *avgWT, float *avgTAT)
+{
+    int i;
+    int completed = 0;
+    int flag;
+    float time = 0;
+    *avgWT = 0;
+    *avgTAT = 0;
+    for(i = 0; i < n; i++)
+        p[i].rt = p[i].bt;
+    while(completed < n)
+    {
+        flag = 0;
+        for(i = 0; i < n; i++)
+        {
+            if(p[i].at <= time && p[i].rt > 0)
+            {
+                flag = 1;
+                if(p[i].rt > tq)
+                {
+                    time += tq;
+                    p[i].rt -= tq;
+                }
+                else
+                {
+                    time += p[i].rt;
+                    p[i].rt = 0;
+                    p[i].ct = time;
+                    p[i].tat = p[i].ct - p[i].at;
+                    p[i].wt = p[i].tat - p[i].bt;
+                    if(p[i].wt < 0)
+                        p[i].wt = 0;
+                    *avgWT += p[i].wt;
+                    *avgTAT += p[i].tat;
+                    completed++;
+                }
+            }
+        }
+        if(flag == 0)
+            time++;
+    }
+    *avgWT /= n;
+    *avgTAT /= n;
+}
+void printResults(Process p[], int n, float avgWT, float avgTAT)
+{
+    int i;
+    printf("\n-------------------------------------------------------------");
+    printf("\nProcess\tAT\tBT\tCT\tTAT\tWT");
+    printf("\n-------------------------------------------------------------");
+    for(i = 0; i < n; i++)
+    {
+        printf("\nP%d\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f",p[i].id,p[i].at,p[i].bt,p[i].ct,p[i].tat,p[i].wt);
+    }
+    printf("\n-------------------------------------------------------------");
+    printf("\nAverage Turnaround Time = %.2f", avgTAT);
+    printf("\nAverage Waiting Time = %.2f\n", avgWT);
+}
+
