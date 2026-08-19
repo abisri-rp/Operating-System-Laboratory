@@ -1,0 +1,101 @@
+#include<stdio.h>
+#include<unistd.h>
+#include<string.h>
+#include<sys/types.h>
+#include<ctype.h>
+int main()
+{
+   int fd1[2],fd2[2];
+   pid_t pid1,pid2;
+   char msg[100];
+   char inputmsg[100];
+   if(pipe(fd1)==-1 || pipe(fd2)==-1 )
+   {
+      printf("Pipe not created");
+      return 1;
+   }
+   pid1=fork();
+   if(pid1<0)
+   {
+      printf("Process not created");
+   }
+   else if(pid1>0)
+   {
+      printf("Process P1\n");
+      printf("Enter the string:");
+      fgets(inputmsg,sizeof(inputmsg),stdin);
+      inputmsg[strcspn(inputmsg,"\n")]='\0';
+      close(fd1[0]);
+      close(fd2[0]);
+      close(fd2[1]);
+      write(fd1[1],inputmsg,strlen(inputmsg)+1);
+      close(fd1[1]);
+      wait(NULL);
+   }
+   else
+   {
+       pid2=fork();
+       if(pid2<0)
+       {
+          printf("Process not created");
+       }
+       else if(pid2>0)
+       {
+          close(fd1[1]);
+          close(fd2[0]);
+          read(fd1[0],msg,sizeof(msg));
+          printf("Process P2\n");
+          printf("Message received:%s\n",msg);
+          int vow=0,i;
+          for(i=0;msg[i]!='\0';i++)
+          {
+             char ch=msg[i];
+             if(ch=='a'||ch=='e'||ch=='i'||ch=='o'||ch=='u'||ch=='A'||ch=='E'||ch=='I'||ch=='O'||ch=='U')
+             {
+                vow++;
+             }
+          }
+          printf("Number of vowels:%d\n",vow);
+          write(fd2[1],&vow,sizeof(vow));
+          write(fd2[1],msg,strlen(msg)+1);
+          close(fd2[1]);
+          wait(NULL);
+       }
+       else
+       {
+           close(fd1[0]);
+           close(fd1[1]);
+           close(fd2[1]);
+           char msg2[100];
+           int receivedvow=0;
+           read(fd2[0], &receivedvow, sizeof(receivedvow));
+           read(fd2[0], msg2, sizeof(msg2));
+           close(fd2[0]);
+           printf("Process P3\n");
+           printf("String Captured: %s\n",msg2);
+           printf("Vowel Count Captured: %d\n", receivedvow);
+           int left=0;
+           int right=strlen(msg2)-1;
+           int pal=1;
+           while (left < right)
+           {
+              if(msg2[left] != msg2[right])
+              {
+                 pal = 0;
+                 break;
+              }
+              left++;
+              right--;
+           }
+           if (pal)
+           {
+              printf("The string is a palindrome\n");
+           }
+           else
+           {
+              printf("The string is not a palindrome.\n");
+           }
+        }
+   }
+   return 0;
+}
