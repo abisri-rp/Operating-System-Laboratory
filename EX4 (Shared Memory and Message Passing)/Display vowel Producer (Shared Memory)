@@ -1,0 +1,53 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#define SHM_SIZE 100
+int main()
+{
+    key_t key;
+    int shmid;
+    char *sharedData;
+    FILE *file;
+    file = fopen("/tmp/shmkeyfile", "a");
+    if (file == NULL)
+    {
+        perror("fopen");
+        return 1;
+    }
+    fclose(file);
+    key = ftok("/tmp/shmkeyfile", 'A');
+    if (key == -1)
+    {
+        perror("ftok");
+        return 1;
+    }
+    shmid = shmget(key, SHM_SIZE, IPC_CREAT | 0666);
+    if (shmid == -1)
+    {
+        perror("shmget");
+        return 1;
+    }
+    sharedData = (char *)shmat(shmid, NULL, 0);
+    if (sharedData == (char *)-1)
+    {
+        perror("shmat");
+        return 1;
+    }
+    printf("Enter a string: ");
+    if (fgets(sharedData, SHM_SIZE, stdin) == NULL)
+    {
+        perror("fgets");
+        shmdt(sharedData);
+        return 1;
+    }
+    sharedData[strcspn(sharedData, "\n")] = '\0';
+    printf("Producer: String stored in shared memory\n");
+    if (shmdt(sharedData) == -1)
+    {
+        perror("shmdt");
+        return 1;
+    }
+    return 0;
+}
