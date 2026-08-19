@@ -1,0 +1,19 @@
+typedef struct
+{
+    int id;
+    float at;
+    float bt;
+    float rt;
+    float ct;
+    float tat;
+    float wt;
+    int priority;
+    int completed;
+} Process;
+void calculateFCFS(Process p[], int n, float *avgWT, float *avgTAT);
+void calculateSJF(Process p[], int n, float *avgWT, float *avgTAT);
+void calculateSRTF(Process p[], int n, float *avgWT, float *avgTAT);
+void printResults(Process p[], int n, float avgWT, float avgTAT);
+void calculatePriorityNonPreemptive(Process p[], int n, float *avgWT, float *avgTAT);
+void calculatePriorityPreemptive(Process p[], int n, float *avgWT, float *avgTAT);
+void calculateRoundRobin(Process p[], int n, int tq, float *avgWT, float *avgTAT);
